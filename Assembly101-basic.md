@@ -1,4 +1,4 @@
-# Assembly 101
+# Assembly 101 basic
 
 8086 chip
 -
