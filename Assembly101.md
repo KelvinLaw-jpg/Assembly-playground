@@ -59,6 +59,12 @@ mov BX, word word1          ; use label to move word of data at memory address f
 
 ### interupts - writing Hello World
 
+When do we use ES vs DS and other segment registers generally?
+- DS	Default for most memory operations (data access, mov AX, [var])
+- ES	Used in string operations (e.g., movsb, stosw) and some BIOS calls like int 0x10, AH=0x13
+- SS	Stack segment (used with SP and BP when accessing stack)
+- CS	Code segment (where your code instructions are loaded)
+
 ```
 ; Program to output Hello World! on the 8086
 
@@ -87,6 +93,17 @@ int 0x10                            ; interrupt to print out string
     Q1.1. So basically when we use int 0x10, the assembler will look at when is AH=0x13 and start from there, and CX controls how many chars to print?
     
     A: Yes — exactly. It basically means "Hey BIOS! I'm calling interrupt 0x10, and I want you to run function 13h (write string)."
+
+    Q1.2. what is 13h? what does h means? also, is the function called 0x10? or function 13h?
+
+    A: h suffix means “This number is in hex.”. So: 13h = 19 in decimal, 0x13 = same thing, just a different syntax (used in C/C++/many modern languages),13 (no suffix) would be decimal 13, which is different.
+    So all 3 of the below do the same shit:
+    ```
+      mov AH, 13h     ; hex
+      mov AH, 0x13    ; hex, C-style
+      mov AH, 19      ; decimal
+    ```
+    Is the function called 0x10 or 13h? int 0x10 or int 10h → This is the BIOS video interrupt — like calling a service. AH = 13h (or 0x13) → This tells the BIOS which function under interrupt 0x10 you want. So tgt `int 0x10  +  AH = 13h`, it means “Call the BIOS video interrupt and run sub-function 13h (write string to screen).”. Int 0x10 is just to tell the assembler to interrupt and look for functions to execute, and which function to execute is actually from AH so the function is 0x13 or 13h and int is just to tell it to kick start the function
 
 2. yes, 12 and 0x0C result in the same value in CX: 000C. It means: Store the value 12 into the 16-bit CX register. In the context of AH=0x13, CX tells BIOS how many characters to print from the memory location you pass in. So, since “Hello World!” is 12 characters long, you must load CX = 12.
 3. This is the default setting of the chip for function 0x10 (print), normally:
