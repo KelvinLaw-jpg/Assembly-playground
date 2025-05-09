@@ -136,7 +136,7 @@ mov BX, offest string
 mov AX, word[BX, 3]             ; pointer arithmetic, add 3 to pointer address and then dereference.
 ```
 
-**Quesstions I had with this program**
+**Questions I had with this program**
 1. db [0x01, 0xa] — What does it mean?
 2. For these 2 lines: `mov BX, 0x02 , mov AX, word [BX]` I understand that i want to move value 0x02 to BX and then treat BX as an address and move the value of memory address 0x02 into AX. Does this act called as dereferencing?
 3. Is BX the only register that can be used to dereference? howbout others?
@@ -165,11 +165,41 @@ mov AX, word[BX, 3]             ; pointer arithmetic, add 3 to pointer address a
    Offset is also similar to lea. `mov DX, offset number` is same as `lea DX, number`. Both load the address @ number into DX
 5. When you say BX holds the address of string: BX points to the start of the data (in this case, the character 'T' in the string "This is a string"). BX holds the address of 'T' (start of the string). BX + 3 simply means moving 3 bytes forward from the address in BX. Now, if BX points to 0x00 (address of 'T'): BX + 3 points to 0x03 (the character 's'). `mov AX, word [BX + 3]` means move the 2 bytes of data starting at address 0x03 (the characters 's' and ' ') into AX.
 
+### Stack
 
+```
+; Program to demonstrate interacting with the stack on the 8086
 
+number: dw 0x5678
+start:
+mov AX, 0xabcd              ; can't push immediate to stack so move to AX first
+push AX                     ; push AX onto stack, note how stack pointer increments
+push AX
+pop BX                      ; pop from top of stack into BX
+mov CX, 0x1234
+push CX
+mov word [0xfffa], 0x6789
+push CX                     ; note how stack operation overwrites other memory
+```
 
+### Challenge
 
+conditions for printing: AH has to be 0x13, CX should hold the length to print, ES is to indicate the segment to print, BP is to indicate the offset to print in that segment
 
+```
+; Write a program to store the string "Don't Print This. Print This." starting at 0x20000
+; the program should then print out only the "Print This." portion of the string
 
+set 0x2000 ;set the memory page (segment) to 20000
+string: db "Don't Print This. Print This." ;declare the Data Directive
+start:
+mov AH, 0x13 ;Set it to print function
+mov CX, 11 ;set CX to 11 char to print
+mov BX, 0x2000 ;since we can only use BX to ES and cannot move 0x2000 directly to ES, thus we need this line
+mov ES, BX ;move 0x2000 to ES
+mov BP, 18 ;start printing at offset 18, which is where "P" at in "Pint This."
+int 0x10 ;interupt and call the funtion
+
+```
 
 
