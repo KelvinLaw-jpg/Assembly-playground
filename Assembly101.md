@@ -114,3 +114,62 @@ In your case, the BIOS function int 0x10 / AH=0x13 is designed to read the strin
 👉 Even if DS is correct, BIOS doesn't look at DS here — it only looks at ES. This is defined behavior by the BIOS designers.
 
 4. yes
+
+### Pointers
+
+**This program (specifically lea) does not work in the emulator, but it works fine in real 8086 chip**
+
+```
+; Program to demonstrate pointers on the 8086
+
+db [0x01, 0xa]                  ; adding data to start of program to make pointers not point at zer0
+number: dw 0x1234
+string: db "This is a string"   
+start:
+mov word [0x02], 0xabcd
+mov BX, 0x02                    ; creating a pointer in BX pointing to memory address 0x02
+mov AX, word [BX]               ; dereferncing pointer BX to mov the contents of the memory address pointed to by BX
+mov CX, word [0x02]             ; dereferncing hard coded pointer to mov the contents of a memory address into CX
+lea AX, word number
+mov DX, offset number
+mov BX, offest string
+mov AX, word[BX, 3]             ; pointer arithmetic, add 3 to pointer address and then dereference.
+```
+
+**Quesstions I had with this program**
+1. db [0x01, 0xa] — What does it mean?
+2. For these 2 lines: `mov BX, 0x02 , mov AX, word [BX]` I understand that i want to move value 0x02 to BX and then treat BX as an address and move the value of memory address 0x02 into AX. Does this act called as dereferencing?
+3. Is BX the only register that can be used to dereference? howbout others?
+4. What does lea do?
+5. In `mov AX, word [BX + 3]`, does 3 means 3 bytes? When we say address, I know that we are taking the starting point of that data is stored, but when we say +3 bytes like now, does that assembler automatically knows that end of that data point? so my case BX is storing the address at string, so I guess the address of char "T" since it is the start of the sentence, does the assembler knows the end? I assume it does right? so +3 means adding 3 bytes at the end of the address where char "g" is at.
+
+
+**Answer**
+1. "Define two bytes in memory, the first is 0x01, and the second is 0x0a." It does not mean to repeat 0x01 ten times. It just inserts 0x01 followed by 0x0A (10 in decimal) at the start of the program. This is often done to offset data like you guessed — so the next labels like number: don't start at address 0x0000.
+2. Yes, this is called dereferencing: you're saying, "go to the memory at the address in BX and get what's stored there."
+3. No, 8086 allows several registers to be used for memory addressing: BX, SI, DI, BP are address registers. You cannot do [AX], [CX], or [DX] — those are general-purpose registers and not valid for memory addressing in this context. So:
+
+    ```
+      ✅mov AX, [BX] → valid
+      ❌ mov AX, [AX] → invalid on 8086
+    ```
+4. lea = Load Effective Address. This instruction does not load the value at the label number. It loads the address of number into AX. So if number is at offset 0x02, AX becomes 0x02.
+
+     
+    ```c
+    int x = 10;
+    int *ptr = &x;  // LEA
+    int val = x;    // MOV
+    ```
+
+   Offset is also similar to lea. `mov DX, offset number` is same as `lea DX, number`. Both load the address @ number into DX
+5. When you say BX holds the address of string: BX points to the start of the data (in this case, the character 'T' in the string "This is a string"). BX holds the address of 'T' (start of the string). BX + 3 simply means moving 3 bytes forward from the address in BX. Now, if BX points to 0x00 (address of 'T'): BX + 3 points to 0x03 (the character 's'). `mov AX, word [BX + 3]` means move the 2 bytes of data starting at address 0x03 (the characters 's' and ' ') into AX.
+
+
+
+
+
+
+
+
+
