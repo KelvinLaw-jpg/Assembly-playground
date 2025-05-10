@@ -116,6 +116,10 @@ cmp BL, AL                      ; Compare AL to BL, note how the various flags c
 ```
 
 **Jumps**
+
+there are many types of jumps, and they look at the flags to determine the jump. JMP is an unconditional jump 'jump anyways'. JA is condition to CF 
+and ZF=0. 
+
 ```
 ; Program to demonstrate jmp instructions by accepting a user input between 0-9
 ; Then comparing it against 5 and printing a message
@@ -142,9 +146,124 @@ int 0x10
 end:
 ```
 
+**My Version Below**
+```
+;take in a user input and compare it to 5
+message1: db "your input is above 5"
+message2: db "your input is below 5"
+message3: db "your input equals to 5"
+null: db 0x00
 
-**Chaining JMPS**
+start:
+mov AH, 0x01
+int 0x21
+sub AL, 0x30 ;convert ASCII to decimal
+cmp AL, 5
+ja largerden5
+je equalto5
+jmp smallerden5
 
+largerden5:
+;print message 1
+mov AH, 0x13
+mov CX, offset message2
+sub CX, offset message1
+mov BP, offset message1
+int 0x10
+jmp end
+
+smallerden5:
+;print message 2
+mov AH, 0x13
+mov CX, offset message3
+sub CX, offset message2
+mov BP, offset message2
+int 0x10
+jmp end
+
+equalto5:
+mov AH, 0x13
+mov CX, offset null
+sub CX, offset message3
+mov BP, offset message3
+int 0x10
+end:
+```
+
+**Chaining JMPS challenge**
+
+My version:
+```
+;Hardcode a number between 0-9 that a user must guess
+;Ask the user for input of a number between 0-9
+;If the user is correct say "Good job, you got it right!" then exit
+;If the user is wrong but within 1 say "Close but not quite" then exit
+;If the user is wrong and off by more than one say "Sorry, that's wrong" then exit
+
+number: db 4
+intro: db "Please input your guess from 0-9: "
+message1: db "Yes you got it!"
+message2: db "sorry you are wrong."
+message3: db "you are close!"
+null: db 0x00
+
+start:
+mov AH, 0x13
+mov CX, offset message1
+sub CX, offset intro
+mov BP, offset intro
+int 0x10
+
+mov AH, 0x01
+int 0x21
+
+sub AL, 0x30 ;convert acsii to decimal
+
+cmp AL, byte number
+
+jne not_equal ;jump not equal function, jump to if it is not equal
+
+;print equal function
+mov CX, offset message2
+sub CX, offset message1
+mov BP, offset message1
+jmp end
+
+not_equal:
+;check if number is +-1
+mov BL, byte number
+add BL, 1
+cmp AL, BL
+jne check_1
+
+mov CX, offset null
+sub CX, offset message3
+mov BP, offset message3
+jmp end
+
+check_1:
+mov DL, byte number
+sub DL, 1
+cmp AL, DL
+jne faroff
+
+mov CX, offset null
+sub CX, offset message3
+mov BP, offset message3
+jmp end
+
+faroff:
+mov CX, offset message3
+sub CX, offset message2
+mov BP, offset message2
+jmp end
+
+end:
+mov AH, 0x13
+int 0x10
+```
+
+Answer:
 ```
 ; Program to demonstrate jmp instructions
 ;------------------------------------------------------------------------------------------
